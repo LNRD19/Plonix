@@ -49,6 +49,7 @@ export function Navbar({ currentPage }: NavbarProps) {
   const [mounted, setMounted] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export function Navbar({ currentPage }: NavbarProps) {
       items: [
         { name: 'Financial Overview', href: '/transactions', icon: TrendingUp, description: 'View all transactions' },
         { name: 'Goals', href: '/goals', icon: Target, description: 'Set and track goals' },
-        { name: 'Add Transaction', href: '/add-transaction', icon: Plus, description: 'Record expenses' },
+        { name: 'Expense Log', href: '/add-transaction', icon: Plus, description: 'Record expenses' },
         { name: 'Pricing', href: '/pricing', icon: CreditCard, description: 'Subscription plans' }
       ]
     }
@@ -114,21 +115,19 @@ export function Navbar({ currentPage }: NavbarProps) {
   }
 
   const handleLogout = async () => {
-    if (confirm('Are you sure you want to log out?')) {
-      try {
-        await signOut()
-        // Clear any cached data
-        if (typeof window !== 'undefined') {
-          localStorage.clear()
-          sessionStorage.clear()
-        }
-        // Redirect to login with success message
-        router.push('/auth/login?message=logged-out')
-      } catch (error) {
-        console.error('Logout error:', error)
-        // Fallback: force redirect even if signOut fails
-        router.push('/auth/login')
+    try {
+      await signOut()
+      // Clear any cached data
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        sessionStorage.clear()
       }
+      // Redirect to login with success message
+      router.push('/auth/login?message=logged-out')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback: force redirect even if signOut fails
+      router.push('/auth/login')
     }
   }
 
@@ -152,13 +151,36 @@ export function Navbar({ currentPage }: NavbarProps) {
           </div>
         </div>
       </nav>
-    )
+    );
   }
 
   return (
-    <nav className="bg-white border-b sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <>
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-4">Confirm Logout</h2>
+            <p className="mb-6 text-gray-700">Are you sure you want to log out?</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                onClick={() => { setShowLogoutModal(false); handleLogout(); }}
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      <nav className="bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/dashboard" className="flex items-center space-x-3">
@@ -274,7 +296,7 @@ export function Navbar({ currentPage }: NavbarProps) {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={handleLogout}
+                    onClick={() => setShowLogoutModal(true)}
                     className="text-gray-600 hover:text-red-600 h-9"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
@@ -365,7 +387,7 @@ export function Navbar({ currentPage }: NavbarProps) {
                     size="sm"
                     onClick={() => {
                       setIsMobileMenuOpen(false)
-                      handleLogout()
+                      setShowLogoutModal(true)
                     }}
                     className="w-full justify-start space-x-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
@@ -383,5 +405,6 @@ export function Navbar({ currentPage }: NavbarProps) {
         )}
       </div>
     </nav>
-  )
+    </>
+  );
 }

@@ -17,6 +17,37 @@ export interface Database {
         Insert: {
           id: string
           email: string
+        transactions: {
+          Row: {
+            id: number;
+            amount: number;
+            merchant: string;
+            category: string;
+            date: string;
+            payment_method: string;
+            notes: string | null;
+            created_at: string;
+          };
+          Insert: {
+            amount: number;
+            merchant: string;
+            category: string;
+            date: string;
+            payment_method: string;
+            notes?: string | null;
+            created_at?: string;
+          };
+          Update: {
+            id?: number;
+            amount?: number;
+            merchant?: string;
+            category?: string;
+            date?: string;
+            payment_method?: string;
+            notes?: string | null;
+            created_at?: string;
+          };
+        },
           full_name?: string | null
           avatar_url?: string | null
           created_at?: string
@@ -112,6 +143,34 @@ export interface Database {
           created_at?: string
         }
       }
+      transactions: {
+        Row: {
+          id: string
+          user_id: string
+          amount: number
+          description: string | null
+          category: string | null
+          date: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          amount: number
+          description?: string | null
+          category?: string | null
+          date?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount?: number
+          description?: string | null
+          category?: string | null
+          date?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -152,16 +211,19 @@ export type Profile = Database['public']['Tables']['profiles']['Row']
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row']
 export type ChatMessage = Database['public']['Tables']['chat_history']['Row']
 export type FinancialMemory = Database['public']['Tables']['financial_memories']['Row']
+export type Transaction = Database['public']['Tables']['transactions']['Row']
 
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
 export type UserProfileInsert = Database['public']['Tables']['user_profiles']['Insert']
 export type ChatMessageInsert = Database['public']['Tables']['chat_history']['Insert']
 export type FinancialMemoryInsert = Database['public']['Tables']['financial_memories']['Insert']
+export type TransactionInsert = Database['public']['Tables']['transactions']['Insert']
 
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
 export type UserProfileUpdate = Database['public']['Tables']['user_profiles']['Update']
 export type ChatMessageUpdate = Database['public']['Tables']['chat_history']['Update']
 export type FinancialMemoryUpdate = Database['public']['Tables']['financial_memories']['Update']
+export type TransactionUpdate = Database['public']['Tables']['transactions']['Update']
 
 // ================================
 // AUTHENTICATION TYPES

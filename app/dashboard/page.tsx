@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,7 +11,51 @@ import { PlusCircle, Calculator, TrendingUp, PieChart, Target, Trophy, BookOpen,
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  
+  const [spent, setSpent] = useState<number | null>(null)
+  const [spentLoading, setSpentLoading] = useState(false)
+
+  useEffect(() => {
+    async function fetchSpent() {
+      setSpentLoading(true)
+      try {
+        const now = new Date()
+        const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10)
+
+        if (!user?.id) {
+          setSpent(0)
+          return
+        }
+
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('amount, date')
+          .eq('user_id', user.id)
+          .gte('date', start)
+          .lte('date', end)
+
+        if (error) {
+          console.warn('Error fetching transactions for spent:', error)
+          setSpent(0)
+        } else if (!data) {
+          setSpent(0)
+        } else {
+          const total = data.reduce((acc: number, row: any) => {
+            const n = Number(row.amount)
+            return acc + (Number.isFinite(n) ? n : 0)
+          }, 0)
+          setSpent(total)
+        }
+      } catch (e) {
+        console.error(e)
+        setSpent(0)
+      } finally {
+        setSpentLoading(false)
+      }
+    }
+
+    fetchSpent()
+  }, [user])
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar currentPage="dashboard" />
@@ -30,7 +75,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-green-600">₱8,450</p>
+                  <p className="text-2xl font-bold text-green-600">₱0</p>
                   <p className="text-sm text-gray-600 font-medium">Total Saved</p>
                 </div>
                 <PiggyBank className="w-8 h-8 text-green-500" />
@@ -42,7 +87,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-blue-600">3</p>
+                  <p className="text-2xl font-bold text-blue-600">0</p>
                   <p className="text-sm text-gray-600 font-medium">Active Goals</p>
                 </div>
                 <Target className="w-8 h-8 text-blue-500" />
@@ -54,7 +99,7 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-emerald-600">₱15,250</p>
+                  <p className="text-2xl font-bold text-emerald-600">₱0</p>
                   <p className="text-sm text-gray-600 font-medium">This Month</p>
                 </div>
                 <ArrowUpRight className="w-8 h-8 text-emerald-500" />
@@ -66,7 +111,9 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-orange-600">₱12,800</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {spentLoading ? '...' : `₱${(spent ?? 0).toFixed(2)}`}
+                  </p>
                   <p className="text-sm text-gray-600 font-medium">Spent</p>
                 </div>
                 <ArrowDownRight className="w-8 h-8 text-orange-500" />
@@ -114,12 +161,12 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">12</div>
+                <div className="text-4xl font-bold text-blue-600 mb-2"></div>
                 <div className="text-sm text-gray-600 mb-4">modules completed</div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div className="bg-blue-500 h-3 rounded-full" style={{ width: '60%' }}></div>
                 </div>
-                <p className="text-xs text-gray-600 mt-2">Great progress! 8 modules remaining</p>
+                <p className="text-xs text-gray-600 mt-2">Great progress! 0 modules remaining</p>
               </div>
             </CardContent>
           </Card>
@@ -139,28 +186,28 @@ export default function DashboardPage() {
                     <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
                     <span className="text-sm">Food & Dining</span>
                   </div>
-                  <span className="text-sm font-medium">₱4,200</span>
+                  <span className="text-sm font-medium">₱0</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
                     <span className="text-sm">Transportation</span>
                   </div>
-                  <span className="text-sm font-medium">₱2,800</span>
+                  <span className="text-sm font-medium">₱0</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
                     <span className="text-sm">Entertainment</span>
                   </div>
-                  <span className="text-sm font-medium">₱1,950</span>
+                  <span className="text-sm font-medium">₱0</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
                     <span className="text-sm">Others</span>
                   </div>
-                  <span className="text-sm font-medium">₱3,850</span>
+                  <span className="text-sm font-medium">₱0</span>
                 </div>
               </div>
             </CardContent>
